@@ -2,12 +2,11 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.ServiceBus;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using Vendas.Helpers;
 using Vendas.Models;
 using Vendas.Repository.Interface;
+using Vendas.Servicos.Interface;
 
 namespace Vendas.Controllers
 {
@@ -16,11 +15,12 @@ namespace Vendas.Controllers
     public class VendasController : ControllerBase
     {
         private readonly IProdutoRepository _produtoRepository;
-        private readonly string _endpointServiceBus;
-        public VendasController(IProdutoRepository produtoRepository, IConfiguration _configuration)
+        private readonly IProdutoMessageServices _produtoMessageServices;
+
+        public VendasController(IProdutoRepository produtoRepository, IConfiguration _configuration, IProdutoMessageServices produtoMessageServices)
         {
             _produtoRepository = produtoRepository;
-            _endpointServiceBus = _configuration.GetConnectionString("EndpointServiceBusConnection");
+            _produtoMessageServices = produtoMessageServices;
         }
 
         // GET: api/Vendas
@@ -50,14 +50,7 @@ namespace Vendas.Controllers
             {
                 _produtoRepository.Update(produto);
 
-                var serviceBusTopicClient = new TopicClient(_endpointServiceBus, "produtovendido");
-
-                var message = new Message(produto.ToJsonBytes())
-                {
-                    ContentType = "application/json"
-                };
-
-                serviceBusTopicClient.SendAsync(message);
+                _produtoMessageServices.EnviarMensagemProdutoVendido(produto);
             }
             catch (DbUpdateConcurrencyException)
             {

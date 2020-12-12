@@ -1,31 +1,28 @@
 ﻿using Microsoft.Azure.ServiceBus;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Vendas.Business;
 using Vendas.Business.Interface;
 using Vendas.Helpers;
 using Vendas.Models;
-using Vendas.Repository.Interface;
 using Vendas.Servicos.Interface;
 
 namespace Vendas.Servicos
 {
     public class ProdutoMessageServices : IProdutoMessageServices
     {
-        private const string endpointServiceBus = "Endpoint=sb://aplicacoesdistribuidascalixto.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=k/7AGJ+SvFXj75fa/BvqU9F90788XAtVMdsCJ53oa9E=";
-        //private readonly IProdutoBusiness _produtoBusiness;
+        private readonly string _endpointServiceBus;
+        private readonly IProdutoBusiness _produtoBusiness;
         private readonly SubscriptionClient _serviceBusClientProdutoCriado;
         private readonly SubscriptionClient _serviceBusClientProdutoAtualizado;
 
-        public ProdutoMessageServices(/*IProdutoBusiness produtoBusiness*/)
+        public ProdutoMessageServices(IProdutoBusiness produtoBusiness, IConfiguration _configuration)
         {
-            //_produtoBusiness = produtoBusiness;
+            _produtoBusiness = produtoBusiness;
+            _endpointServiceBus = _configuration.GetConnectionString("EndpointServiceBusConnection");
 
-            _serviceBusClientProdutoCriado = new SubscriptionClient(endpointServiceBus, "produtocriado", "produtocriadosubscricao");
-            _serviceBusClientProdutoAtualizado = new SubscriptionClient(endpointServiceBus, "produtoatualizado", "produtoatualizadosubscricao");
+            _serviceBusClientProdutoCriado = new SubscriptionClient(_endpointServiceBus, "produtocriado", "produtocriadosubscricao");
+            _serviceBusClientProdutoAtualizado = new SubscriptionClient(_endpointServiceBus, "produtoatualizado", "produtoatualizadosubscricao");
         }
 
         public void RegisterOnMessageHandlerAndReceiveMessagesProdutoCriado()
@@ -53,14 +50,14 @@ namespace Vendas.Servicos
         private async Task ProcessMessageProdutoAtualizadoAsync(Message message, CancellationToken arg2)
         {
             var produtoEnviado = message.Body.ParseJson<Produto>();
-            //_produtoBusiness.ProcessarAtualizacao(produtoEnviado);
+            _produtoBusiness.ProcessarAtualizacao(produtoEnviado);
             await _serviceBusClientProdutoAtualizado.CompleteAsync(message.SystemProperties.LockToken);
         }
 
         private async Task ProcessMessageProdutoCriadoAsync(Message message, CancellationToken arg2)
         {
             var produto = message.Body.ParseJson<Produto>();
-            //_produtoBusiness.ProcessarCriacao(produto);
+            _produtoBusiness.ProcessarCriacao(produto);
             await _serviceBusClientProdutoCriado.CompleteAsync(message.SystemProperties.LockToken);
         }
 
@@ -77,10 +74,26 @@ namespace Vendas.Servicos
 
         }
 
+        public void EnviarMensagemProdutoVendido() { 
+        
+        }
+
         public async Task CloseQueueAsync()
         {
             await _serviceBusClientProdutoAtualizado.CloseAsync();
             await _serviceBusClientProdutoCriado.CloseAsync();
+        }
+
+        public void EnviarMensagemProdutoVendido(Produto produto)
+        {
+            var serviceBusTopicClient = new TopicClient(_endpointServiceBus, "produtovendido");
+
+            var message = new Message(produto.ToJsonBytes())
+            {
+                ContentType = "application/json"
+            };
+
+            serviceBusTopicClient.SendAsync(message);
         }
     }
 }

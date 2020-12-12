@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using Vendas.Models;
 
 namespace Vendas.Servicos.Interface
 {
@@ -6,6 +7,7 @@ namespace Vendas.Servicos.Interface
     {
         void RegisterOnMessageHandlerAndReceiveMessagesProdutoCriado();
         void RegisterOnMessageHandlerAndReceiveMessagesProdutoAtualizado();
+        void EnviarMensagemProdutoVendido(Produto produto);
         Task CloseQueueAsync();
     }
 }
