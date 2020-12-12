@@ -8,6 +8,7 @@ using Estoque.Models;
 using Microsoft.Azure.ServiceBus;
 using Estoque.Helpers;
 using System.Threading;
+using Microsoft.Extensions.Configuration;
 
 namespace Estoque.Controllers
 {
@@ -16,13 +17,13 @@ namespace Estoque.Controllers
     public class ProdutosController : ControllerBase
     {
         private readonly EstoqueContext _context;
-        private const string endpointServiceBus = "Endpoint=sb://aplicacoesdistribuidascalixto.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=k/7AGJ+SvFXj75fa/BvqU9F90788XAtVMdsCJ53oa9E=";
+        private readonly string _endpointServiceBus;
       
-        public ProdutosController(EstoqueContext context)
+        public ProdutosController(EstoqueContext context, IConfiguration _configuration)
         {
             _context = context;
-
-            var serviceBusClientProdutoVendido= new SubscriptionClient(endpointServiceBus, "produtovendido", "produtovendidosubscricao");
+            _endpointServiceBus = _configuration.GetConnectionString("EndpointServiceBusConnection");
+            var serviceBusClientProdutoVendido= new SubscriptionClient(_endpointServiceBus, "produtovendido", "produtovendidosubscricao");
 
             var messageHandlerOptions = new MessageHandlerOptions(ExceptionReceivedHandler)
             {
@@ -95,7 +96,7 @@ namespace Estoque.Controllers
             {
                 await _context.SaveChangesAsync();
 
-                var serviceBusTopicClient = new TopicClient(endpointServiceBus, "produtoatualizado");
+                var serviceBusTopicClient = new TopicClient(_endpointServiceBus, "produtoatualizado");
 
                 var message = new Message(produto.ToJsonBytes())
                 {
@@ -147,7 +148,7 @@ namespace Estoque.Controllers
             _context.Produtos.Add(produto);
             await _context.SaveChangesAsync();
 
-            var serviceBusTopicClient = new TopicClient(endpointServiceBus, "produtocriado");
+            var serviceBusTopicClient = new TopicClient(_endpointServiceBus, "produtocriado");
 
             var message = new Message(produto.ToJsonBytes())
             {

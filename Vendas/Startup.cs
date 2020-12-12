@@ -29,7 +29,7 @@ namespace Vendas
             services.AddDbContext<ProdutoRepository>(opt => opt.UseInMemoryDatabase("Vendas"));
             services.AddTransient(typeof(IProdutoBusiness), typeof(ProdutoBusiness));
             services.AddTransient(typeof(IProdutoRepository), typeof(ProdutoRepository));
-            services.AddTransient<IProdutoMessageServices, ProdutoMessageServices>();
+            services.AddSingleton<IProdutoMessageServices, ProdutoMessageServices>();
 
             services.AddControllers();
         }

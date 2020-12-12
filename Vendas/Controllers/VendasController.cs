@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Vendas.Helpers;
 using Vendas.Models;
 using Vendas.Repository.Interface;
@@ -16,11 +16,11 @@ namespace Vendas.Controllers
     public class VendasController : ControllerBase
     {
         private readonly IProdutoRepository _produtoRepository;
-        private const string endpointServiceBus = "Endpoint=sb://aplicacoesdistribuidascalixto.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=k/7AGJ+SvFXj75fa/BvqU9F90788XAtVMdsCJ53oa9E=";
-
-        public VendasController(IProdutoRepository produtoRepository)
+        private readonly string _endpointServiceBus;
+        public VendasController(IProdutoRepository produtoRepository, IConfiguration _configuration)
         {
             _produtoRepository = produtoRepository;
+            _endpointServiceBus = _configuration.GetConnectionString("EndpointServiceBusConnection");
         }
 
         // GET: api/Vendas
@@ -50,7 +50,7 @@ namespace Vendas.Controllers
             {
                 _produtoRepository.Update(produto);
 
-                var serviceBusTopicClient = new TopicClient(endpointServiceBus, "produtovendido");
+                var serviceBusTopicClient = new TopicClient(_endpointServiceBus, "produtovendido");
 
                 var message = new Message(produto.ToJsonBytes())
                 {

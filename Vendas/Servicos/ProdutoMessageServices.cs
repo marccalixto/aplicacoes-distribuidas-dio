@@ -16,13 +16,13 @@ namespace Vendas.Servicos
     public class ProdutoMessageServices : IProdutoMessageServices
     {
         private const string endpointServiceBus = "Endpoint=sb://aplicacoesdistribuidascalixto.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=k/7AGJ+SvFXj75fa/BvqU9F90788XAtVMdsCJ53oa9E=";
-        private readonly IProdutoBusiness _produtoBusiness;
+        //private readonly IProdutoBusiness _produtoBusiness;
         private readonly SubscriptionClient _serviceBusClientProdutoCriado;
         private readonly SubscriptionClient _serviceBusClientProdutoAtualizado;
 
-        public ProdutoMessageServices(IProdutoBusiness produtoBusiness)
+        public ProdutoMessageServices(/*IProdutoBusiness produtoBusiness*/)
         {
-            _produtoBusiness = produtoBusiness;
+            //_produtoBusiness = produtoBusiness;
 
             _serviceBusClientProdutoCriado = new SubscriptionClient(endpointServiceBus, "produtocriado", "produtocriadosubscricao");
             _serviceBusClientProdutoAtualizado = new SubscriptionClient(endpointServiceBus, "produtoatualizado", "produtoatualizadosubscricao");
@@ -52,55 +52,22 @@ namespace Vendas.Servicos
 
         private async Task ProcessMessageProdutoAtualizadoAsync(Message message, CancellationToken arg2)
         {
-
-            //var myPayload = JsonConvert.DeserializeObject<MyPayload>(Encoding.UTF8.GetString(message.Body));
-            //_processData.Process(myPayload);
-            //await _queueClient.CompleteAsync(message.SystemProperties.LockToken);
-
             var produtoEnviado = message.Body.ParseJson<Produto>();
-            _produtoBusiness.ProcessarAtualizacao(produtoEnviado);
+            //_produtoBusiness.ProcessarAtualizacao(produtoEnviado);
             await _serviceBusClientProdutoAtualizado.CompleteAsync(message.SystemProperties.LockToken);
-
-
-            //var produtoEnviado = message.Body.ParseJson<Produto>();
-
-            //if (_produtoRepository.ProdutoExiste(produtoEnviado.Id))
-            //{
-            //    Produto produto = _produtoRepository.GetById(produtoEnviado.Id);
-
-            //    produto.CodigoProduto = produtoEnviado.CodigoProduto;
-            //    produto.Nome = produtoEnviado.Nome;
-            //    produto.Preco = produtoEnviado.Preco;
-            //    produto.Quantidade = produtoEnviado.Quantidade;
-
-            //    try
-            //    {
-            //        _produtoRepository.Update(produto);
-            //    }
-            //    catch (DbUpdateConcurrencyException)
-            //    {
-            //        throw;
-            //    }
-            //}
-
-            //return Task.CompletedTask;
         }
 
         private async Task ProcessMessageProdutoCriadoAsync(Message message, CancellationToken arg2)
         {
             var produto = message.Body.ParseJson<Produto>();
-            _produtoBusiness.ProcessarCriacao(produto);
+            //_produtoBusiness.ProcessarCriacao(produto);
             await _serviceBusClientProdutoCriado.CompleteAsync(message.SystemProperties.LockToken);
-
-            //var produto = message.Body.ParseJson<Produto>();
-            //_produtoRepository.Add(produto);
-            //return Task.CompletedTask;
         }
 
         private Task ExceptionReceivedHandler(ExceptionReceivedEventArgs arg)
         {
             //_logger.LogError(exceptionReceivedEventArgs.Exception, "Message handler encountered an exception");
-            var context = arg.ExceptionReceivedContext;
+            //var context = arg.ExceptionReceivedContext;
 
             //_logger.LogDebug($"- Endpoint: {context.Endpoint}");
             //_logger.LogDebug($"- Entity Path: {context.EntityPath}");
