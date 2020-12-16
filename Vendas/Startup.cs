@@ -27,9 +27,9 @@ namespace Vendas
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddDbContext<ProdutoRepository>(opt => opt.UseInMemoryDatabase("Vendas"));
-            services.AddScoped<IProdutoMessageServices, ProdutoMessageServices>();
             services.AddScoped(typeof(IProdutoRepository), typeof(ProdutoRepository));
             services.AddScoped(typeof(IProdutoBusiness), typeof(ProdutoBusiness));
+            services.AddSingleton<IProdutoMessageServices, ProdutoMessageServices>();
 
             services.AddControllers();
         }
@@ -53,7 +53,10 @@ namespace Vendas
                 endpoints.MapControllers();
             });
 
+            var bus = app.ApplicationServices.GetService<IProdutoMessageServices>();
 
+            bus.RegisterOnMessageHandlerAndReceiveMessagesProdutoAtualizado();
+            bus.RegisterOnMessageHandlerAndReceiveMessagesProdutoCriado();
         }
     }
 }

@@ -39,6 +39,9 @@ namespace Vendas.Controllers
                 return NotFound();
             }
 
+            if (quantidade <= 0)
+                return new ContentResult() { Content = "Quantidade informada inválida", StatusCode = 200 };
+
             Produto produto = GetProduto(idProduto);
 
             if (produto.Quantidade < quantidade)
@@ -49,7 +52,6 @@ namespace Vendas.Controllers
             try
             {
                 _produtoRepository.Update(produto);
-
                 _produtoMessageServices.EnviarMensagemProdutoVendido(produto);
             }
             catch (DbUpdateConcurrencyException)
