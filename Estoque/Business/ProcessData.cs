@@ -12,9 +12,9 @@ namespace Estoque.Business
             _produtoBusiness = produtoBusiness;
         }
 
-        public void ProcessUpdate(Produto produto)
+        public void ProcessUpdate(ProdutoVendido produtoVendido)
         {
-            _produtoBusiness.ProcessarVenda(produto);
+            _produtoBusiness.ProcessarVenda(produtoVendido);
         }
     }
 }

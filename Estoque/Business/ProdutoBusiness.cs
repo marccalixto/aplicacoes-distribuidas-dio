@@ -36,16 +36,13 @@ namespace Estoque.Business
             return _produtoRepository.GetAll().Any(x => x.Id == idProduto);
         }
 
-        public void ProcessarVenda(Produto produtoEnviado)
+        public void ProcessarVenda(ProdutoVendido produtoVendido)
         {
-            if (_produtoRepository.ProdutoExiste(produtoEnviado.Id))
+            if (_produtoRepository.ProdutoExiste(produtoVendido.Id))
             {
-                Produto produto = _produtoRepository.GetById(produtoEnviado.Id);
+                Produto produto = _produtoRepository.GetById(produtoVendido.Id);
 
-                produto.CodigoProduto = produtoEnviado.CodigoProduto;
-                produto.Nome = produtoEnviado.Nome;
-                produto.Preco = produtoEnviado.Preco;
-                produto.Quantidade = produtoEnviado.Quantidade;
+                produto.Quantidade -= produtoVendido.Quantidade;
 
                 try
                 {

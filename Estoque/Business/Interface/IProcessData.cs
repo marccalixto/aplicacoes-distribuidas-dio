@@ -4,6 +4,6 @@ namespace Estoque.Business.Interface
 {
     public interface IProcessData
     {
-        void ProcessUpdate(Produto produto);
+        void ProcessUpdate(ProdutoVendido produtoVendido);
     }
 }

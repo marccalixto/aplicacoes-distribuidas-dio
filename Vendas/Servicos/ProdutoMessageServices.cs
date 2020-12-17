@@ -82,9 +82,9 @@ namespace Vendas.Servicos
 
         }
 
-        public void EnviarMensagemProdutoVendido(Produto produto)
+        public void EnviarMensagemProdutoVendido(ProdutoVendido produtoVendido)
         {
-            var message = new Message(produto.ToJsonBytes())
+            var message = new Message(produtoVendido.ToJsonBytes())
             {
                 ContentType = "application/json"
             };

@@ -5,7 +5,7 @@ namespace Estoque.Business.Interface
 {
     public interface IProdutoBusiness
     {
-        void ProcessarVenda(Produto produtoEnviado);
+        void ProcessarVenda(ProdutoVendido produtoVendido);
         IQueryable<Produto> GetAll();
         void Update(Produto produto);
         void Add(Produto produto);

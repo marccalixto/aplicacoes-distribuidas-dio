@@ -7,7 +7,7 @@ namespace Vendas.Servicos.Interface
     {
         void RegisterOnMessageHandlerAndReceiveMessagesProdutoCriado();
         void RegisterOnMessageHandlerAndReceiveMessagesProdutoAtualizado();
-        void EnviarMensagemProdutoVendido(Produto produto);
+        void EnviarMensagemProdutoVendido(ProdutoVendido produtoVendido);
         Task CloseQueueAsync();
     }
 }

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Vendas.Business.Interface;
 using Vendas.Models;
 using Vendas.Repository.Interface;
 using Vendas.Servicos.Interface;
@@ -14,12 +15,12 @@ namespace Vendas.Controllers
     [ApiController]
     public class VendasController : ControllerBase
     {
-        private readonly IProdutoRepository _produtoRepository;
+        private readonly IProdutoBusiness _produtoBusiness;
         private readonly IProdutoMessageServices _produtoMessageServices;
 
-        public VendasController(IProdutoRepository produtoRepository, IConfiguration _configuration, IProdutoMessageServices produtoMessageServices)
+        public VendasController(IProdutoBusiness produtoBusiness, IConfiguration _configuration, IProdutoMessageServices produtoMessageServices)
         {
-            _produtoRepository = produtoRepository;
+            _produtoBusiness= produtoBusiness;
             _produtoMessageServices = produtoMessageServices;
         }
 
@@ -27,36 +28,37 @@ namespace Vendas.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Produto>>> GetProdutos()
         {
-            return await _produtoRepository.GetAll().Where(x => x.Quantidade > 0).ToListAsync();
+            return await _produtoBusiness.GetAll().Where(x => x.Quantidade > 0).ToListAsync();
         }
 
         // POST: api/Vendas
         [HttpPost]
-        public async Task<ActionResult<Produto>> RealizarVenda(int idProduto, int quantidade)
+        public ActionResult<Produto> RealizarVenda(int idProduto, int quantidade)
         {
-            if (!ProdutoExists(idProduto))
+            if (quantidade <= 0)
+                return new ContentResult() { Content = "Quantidade informada para a venda é inválida", StatusCode = 200 };
+
+            var produto = _produtoBusiness.GetProduto(idProduto);
+
+            if (produto == null)
             {
                 return NotFound();
             }
 
-            if (quantidade <= 0)
-                return new ContentResult() { Content = "Quantidade informada inválida", StatusCode = 200 };
-
-            Produto produto = GetProduto(idProduto);
-
             if (produto.Quantidade < quantidade)
-                return new ContentResult() { Content = "Quantidade insuficiente de produto para a venda", StatusCode = 200 };
+                return new ContentResult() { Content = "Quantidade de produto em estoque é insuficiente para a venda", StatusCode = 200 };
 
             produto.Quantidade -= quantidade;
 
             try
             {
-                _produtoRepository.Update(produto);
-                _produtoMessageServices.EnviarMensagemProdutoVendido(produto);
+                _produtoBusiness.Update(produto);
+                var produtoVendido = new ProdutoVendido() { Id = produto.Id, Quantidade = quantidade };
+                _produtoMessageServices.EnviarMensagemProdutoVendido(produtoVendido);
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!ProdutoExists(idProduto))
+                if (!_produtoBusiness.ProdutoExiste(idProduto))
                 {
                     return NotFound();
                 }
@@ -67,16 +69,6 @@ namespace Vendas.Controllers
             }
 
             return NoContent();
-        }
-
-        private bool ProdutoExists(int id)
-        {
-            return _produtoRepository.ProdutoExiste(id);
-        }
-
-        private Produto GetProduto(int id)
-        {
-            return _produtoRepository.GetById(id);
         }
     }
 }

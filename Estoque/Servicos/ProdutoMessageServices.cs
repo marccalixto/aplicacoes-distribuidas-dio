@@ -55,10 +55,10 @@ namespace Estoque.Servicos
 
         private async Task ProcessMessageProdutoVendidoAsync(Message message, CancellationToken arg2)
         {
-            var produto = message.Body.ParseJson<Produto>();
+            var produtovendido = message.Body.ParseJson<ProdutoVendido>();
             var scope = _serviceProvider.CreateScope();
             var _produtoBusiness = scope.ServiceProvider.GetService<IProdutoBusiness>();
-            _produtoBusiness.ProcessarVenda(produto);
+            _produtoBusiness.ProcessarVenda(produtovendido);
             await _serviceBusClientProdutoVendido.CompleteAsync(message.SystemProperties.LockToken);
         }
 

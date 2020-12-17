@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.Linq;
 using Vendas.Business.Interface;
 using Vendas.Models;
 using Vendas.Repository.Interface;
@@ -40,5 +41,26 @@ namespace Vendas.Business
         {
             _produtoRepository.Add(produto);
         }
+
+        #region Buscas no repositório
+        public IQueryable<Produto> GetAll()
+        {
+            return _produtoRepository.GetAll();
+        }
+
+        public void Update(Produto produto)
+        {
+            _produtoRepository.Update(produto);
+        }
+
+        public bool ProdutoExiste(int idProduto)
+        {
+            return _produtoRepository.GetAll().Any(x => x.Id == idProduto);
+        }
+        public Produto GetProduto(int idProduto)
+        {
+            return _produtoRepository.GetById(idProduto);
+        }
+        #endregion
     }
 }
